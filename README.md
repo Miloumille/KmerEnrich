@@ -23,7 +23,8 @@ devtools::install_github("Miloumille/KmerEnrich")
 
 ## Usage
 
-### Basic K-mer Analysis
+### Main Functions
+#### Basic K-mer Analysis
 
 ```R
 # Generate common k-mers from a single FASTA file
@@ -33,14 +34,14 @@ k_mers <- gen_obs_kmers_one_fasta("path/to/virus.fasta", k = 4, x = 20)
 k_mers <- gen_obs_kmers_one_fasta("path/to/dengue/directory/", k = 4, x = 100)
 ```
 
-### Position Analysis
+#### Position Analysis
 
 ```R
 # Generate position dataframe for k-mers
 positions_df <- kmers_pos_df(fasta_path = "path/to/sequences", kmers_list = k_mers)
 ```
 
-### Statistical Analysis
+#### Statistical Analysis
 
 ```R
 # Get virus statistics
@@ -50,8 +51,13 @@ virus_stats <- get_virus_stats_kmers(df_virus)
 vector_stats <- get_vector_stats_kmers(v_kmers_stats, vector_genome_path)
 ```
 
-### Generate HTML Report
+## Generate HTML Report of main analysis
+This report will include all previous steps and plot graph that will help visualize the results of different Kmer sizes for specific or generic analysis for one or multiple vector fastq files.
 
+The HTML report will contain a main dataframe of the get_vector_stats_kmers function for each selected Kmer size. 
+For each k (size) the HTML report will also plot a graph of the renchirment versus repartition of the Kmer on the viral genome. allowing for easier comparison of Kmers
+finally the report will also show the position of the 5 best Kmers on the viral genome.
+This allows for deeper analysis on for genome coverage.
 ```R
 # Generate full enrichment report for mutiple kmers
 KmerEnrichFullReport(virus_folder, vector_genome_path, k, x,"my_report.html")
