@@ -6,11 +6,6 @@
 #'
 #' @return This function will return a dataframe containing the statistical information about the frequency of appearence of each kmer, the mean of the segments separating kmers, the mean count of each kmers in their virus, the mean standart deviation of the segments seperating kmers and the stadart deviation of the mean count in order to check how regularly this kmer appears in the virus genome.
 #'
-#' @examples
-#' # Example of how to use the function
-#' k_mers_stats <- get_stats_kmers(df_virus)
-#' print(k_mers_stats)
-#'
 #' @export
 get_virus_stats_kmers <- function(df_virus) {
   # Drop lines that correspond to the distance between first nucleotide and first kmer

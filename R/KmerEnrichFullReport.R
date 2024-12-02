@@ -4,12 +4,11 @@
 #'
 #' @param virus_genome_path The input is a string that can be either a path to a fasta file or a path to a folder containing fasta files.
 #' @param vector_genome_path The input is a string that can be either a path to a fasta file or a path to a folder containing fasta files.
+#' @param k_list A list of integers indicating the Kmers to search for in the virus genome. The report will include the Kmers that appear in all the virus genomes.
 #' @param x Value of x indicating the x first bases in the Virus gneome in which the Kmers will be searched. The report will only keep the Kmers appearing in all the virus genomes.
-#' @param k List of integers indicating the size of the Kmers to search for.
 #' @param report_name The name of the report file to generate. Default is "report.html".
 #'
 #' @return This function will generate an HTML report in the working directory.
-#'
 #' @export
 KmerEnrichFullReport <- function(virus_genome_path, vector_genome_path, k_list, x, report_name = "report.html") {
   template_path <- system.file("rmd", "KmerEnrichFullReport.Rmd", package = "KmerEnrich")

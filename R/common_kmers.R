@@ -8,15 +8,6 @@
 #'
 #' @return The function will return a list of all kmers that have been found in common in all sequences of all fasta files between position 0 and x.
 #'
-#' @examples
-#' # Example of how to use the function
-#' k_mers <- gen_obs_kmers_one_fasta("data_processed/virus/reference/Mayaro_virus.fasta", 4, 20)
-#' print(k_mers)
-#' k_mers <- gen_obs_kmers_one_fasta("../data_processed/virus/all_dengue/", 4, 100)
-#' print(k_mers)
-#'
-#' @export
-#'
 common_kmers <- function(virus_genome_path, k, x) {
   find_kmers <- function(sequence, k) {
     kmers <- sapply(1:(nchar(sequence) - k + 1), function(i) substr(sequence, i, i + k - 1))

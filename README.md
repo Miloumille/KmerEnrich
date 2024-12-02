@@ -80,7 +80,7 @@ The package generates various outputs including:
 
 ## Structured image of the Pipeline
 
-<img src="Pipeline_image.png" alt="Logo" width="800" />
+<img src="inst/img/Pipeline_image.png" alt="Logo" width="800" />
 
 ## Contributing
 

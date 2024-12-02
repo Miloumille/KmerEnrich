@@ -4,20 +4,17 @@ Version: 0.1.0
 Description: None Yet.
 Author: Van Cauwenberghe Emile
 Maintainer: <milouvancau@gmail.com>
-License: MIT
+License: GPL-3
 RoxygenNote: 7.3.2
 Encoding: UTF-8
+Depends: R (>= 4.0.0)
 Imports:
-    dplyr,
-    stringr,
-    data.table,
     Biostrings,
+    data.table,
+    dplyr,
+    magrittr,
+    stringr,
     ShortRead
 Suggests:
-    rmarkdown
-Imports:
-  ggplot2,
-  dplyr,
-  stringr,
-  data.table,
-  Biostrings
+    testthat
+LazyData: true

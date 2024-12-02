@@ -7,19 +7,13 @@
 #'
 #' @return This function will return a dataframe containing the position of every kmer on every sequence of every fasta file with specific characteristics as the sequence name, the position of the kmer, the type of the virus (subtype), the segment size (distance between previous kmer and actual kmer) and the log10 value of the segment size.
 #'
-#' @examples
-#' # Example of how to use the function
-#' kmer_position_df <- kmers_pos_df("../data_processed/virus/reference/Mayaro_virus.fasta", c("AAA","ACT"))
-#' print(kmer_position_df)
-#' kmer_position_df <- kmers_pos_df("../data_processed/virus/all_dengue/", c("AAA","ACT"))
-#' print(kmer_position_df)
-#'
 #' @export
 kmers_pos_df <- function(virus_genome_path, kmers_list) {
   # Small function to search kmers
   find_kmer_positions <- function(sequence, kmer) {
     positions <- gregexpr(kmer, sequence)[[1]]
     positions <- positions[positions > 0]
+
     return(positions)
   }
 

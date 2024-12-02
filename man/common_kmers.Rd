@@ -2,28 +2,20 @@
 % Please edit documentation in R/common_kmers.R
 \name{common_kmers}
 \alias{common_kmers}
-\title{Generate common observed kmers}
+\title{Generate common observed Kmers}
 \usage{
-common_kmers(fasta_folder, k, x)
+common_kmers(virus_genome_path, k, x)
 }
 \arguments{
-\item{k}{value of the k-mer size.}
+\item{virus_genome_path}{path to the folder containing the fasta files or to the fasta file. Can be a folder or a fasta file. (files must be in .fasta format).}
 
-\item{x}{value indicating on how much of the sequence the kmers need to be generated.}
+\item{k}{value indicating the length of the kmers that need to be searched for.}
 
-\item{path}{link to the fasta file (or folder containing fasta files) in string format.}
+\item{x}{value indicating the position until which the kmers need to be searched for. If x is larger than the length of the sequence, the function will take the whole sequence.}
 }
 \value{
-the function returns a list of all kmers that have been found in common in all sequences of all fasta files between position 0 and x.
+The function will return a list of all kmers that have been found in common in all sequences of all fasta files between position 0 and x.
 }
 \description{
-This functions takes as imput as path to a folder or a fasta file, a k value and a x value in order to generate all k_mers that can be found in the fasta file(s) from position 0 until x.
-}
-\examples{
-# Example of how to use the function
-k_mers <- gen_obs_kmers_one_fasta("data_processed/virus/reference/Mayaro_virus.fasta", 4, 20)
-print(k_mers)
-k_mers <- gen_obs_kmers_one_fasta("../data_processed/virus/all_dengue/", 4, 100)
-print(k_mers)
-
+The common_kmers function generates a list of all kmers that have been found in common in all sequences of all fasta files between position 0 and x.
 }

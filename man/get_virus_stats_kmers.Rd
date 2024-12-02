@@ -10,14 +10,8 @@ get_virus_stats_kmers(df_virus)
 \item{df_virus}{The input is a Dataframe that is typically the output of the "kmers_pos_df" function. A Dataframe containing a columns for each Kmer, a column containing the SequenceName, a column containing the Position of the Kmer, a column containing the Type of the virus (subtype), a column containing the segment size (distance between previous kmer and actual kmer) and a last column containing the log10 value of the segment size.}
 }
 \value{
-This function will return a Dataframe containing only one line per Kmer with all the statisctal values corresponding to that kmer reguarding the virus genomes stored in columns. this includes the mean semgent size, the mean count of appearences of that kmer, the mean of the standart deviation of the segment size, the frequency at which that kmer should appear on average in the virus, the standart deviation of the count in each segment contained in the fasta files.
+This function will return a dataframe containing the statistical information about the frequency of appearence of each kmer, the mean of the segments separating kmers, the mean count of each kmers in their virus, the mean standart deviation of the segments seperating kmers and the stadart deviation of the mean count in order to check how regularly this kmer appears in the virus genome.
 }
 \description{
-This function will take the output of the kmers_pos_df and gather statistical information about the frequency of appearence of each kmer, the mean of the segments separating kmers, the mean count of each kmers in their virus, the mean standart deviation of the segments seperating kmers and the stadart deviation of the mean count in order to check how regularly this kmer appears in the virus genome.
-}
-\examples{
-# Example of how to use the function
-k_mers_stats <- get_stats_kmers(df_virus)
-print(k_mers_stats)
-
+The get_stats_kmers function will take the output of the kmers_pos_df and gather statistical information about the frequency of appearence of each kmer, the mean of the segments separating kmers, the mean count of each kmers in their virus, the mean standart deviation of the segments seperating kmers and the stadart deviation of the mean count in order to check how regularly this kmer appears in the virus genome.
 }

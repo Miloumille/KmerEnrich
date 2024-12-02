@@ -6,11 +6,6 @@
 #'
 #' @return The function will complete the "v_kmers_stats" Dataframe by adding for each kmer the frequence at which it appears in the fastq files as well as the amount of time they appeared.
 #'
-#' @examples
-#' # Example of how to use the function
-#' k_mers <- gen_obs_kmers_one_fasta("data_processed/virus/reference/Mayaro_virus.fasta", 4, 20)
-#' print(k_mers)
-#'
 #' @export
 get_vector_stats_kmers <- function(v_kmers_stats, vector_genome_path) {
   count_kmer_in_fastq <- function(fq, specific_kmer) {

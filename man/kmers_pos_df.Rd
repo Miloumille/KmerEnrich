@@ -4,24 +4,16 @@
 \alias{kmers_pos_df}
 \title{Generate a dataframe of position of all kmers, distance between kmers for the fasta file(s)}
 \usage{
-kmers_pos_df(path, kmers_list)
+kmers_pos_df(virus_genome_path, kmers_list)
 }
 \arguments{
-\item{path}{link to the fasta file or the folder containing fasta files in string format.}
+\item{virus_genome_path}{The input is a string that can be either a path to a fasta file or a path to a folder containing fasta files.}
 
-\item{kmers_list}{List of Kmers that will be searched in the fasta file(s).}
+\item{kmers_list}{The input is a list of strings containing the kmers to search for.}
 }
 \value{
-the function returns a dataframe with the position of every kmer on every sequence of every fasta file. It also contains the size of the segments betweem 2 kmers or between the first nucleotide and the first kmer or the last kmer and the last nucleotide.
+This function will return a dataframe containing the position of every kmer on every sequence of every fasta file with specific characteristics as the sequence name, the position of the kmer, the type of the virus (subtype), the segment size (distance between previous kmer and actual kmer) and the log10 value of the segment size.
 }
 \description{
-This functions takes as imput the path of a fasta file or a folder, a k value and a x value in order to generate all k_mers that can be found in the fasta file(s) from position 0 until x.
-}
-\examples{
-# Example of how to use the function
-kmer_position_df <- kmers_pos_df("../data_processed/virus/reference/Mayaro_virus.fasta", c("AAA","ACT"))
-print(kmer_position_df)
-kmer_position_df <- kmers_pos_df("../data_processed/virus/all_dengue/", c("AAA","ACT"))
-print(kmer_position_df)
-
+The kmers_pos_df function is used to generate a dataframe containing the position of every kmer on every sequence of every fasta file. It also contains the size of the segments betweem 2 kmers or between the first nucleotide and the first kmer or the last kmer and the last nucleotide.
 }
