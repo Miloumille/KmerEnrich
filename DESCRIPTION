@@ -1,0 +1,23 @@
+Package: KmerEnrich
+Title: None yet
+Version: 0.1.0
+Description: None Yet.
+Author: Van Cauwenberghe Emile
+Maintainer: <milouvancau@gmail.com>
+License: MIT
+RoxygenNote: 7.3.2
+Encoding: UTF-8
+Imports:
+    dplyr,
+    stringr,
+    data.table,
+    Biostrings,
+    ShortRead
+Suggests:
+    rmarkdown
+Imports:
+  ggplot2,
+  dplyr,
+  stringr,
+  data.table,
+  Biostrings

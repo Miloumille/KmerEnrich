@@ -1,0 +1,73 @@
+---
+title: "Dynamic Report"
+output: html_document
+params:
+  virus_genome_path: NULL
+  vector_genome_path: NULL
+  k_list: NULL
+  x: NULL
+  results: NULL
+  plot_data: NULL
+---
+
+```{r,echo=FALSE}
+k_mers <- names(plot_data)
+
+for (k in k_list){
+  
+  df <- results[[paste0("k_", k)]]
+  subset_df <- df %>%
+    select(Kmer, mean_count, sd_count, x_value, y_value) %>%
+    arrange(desc(y_value)) %>%
+    slice_head(n = 5)
+  print(knitr::kable(subset_df, format = "simple"))
+
+
+############
+
+    table <- results[[paste0("k_", k)]] %>% filter(mean_count > 5)
+    
+    # Create plot
+    plot <- ggplot(table, aes(x = x_value, y = y_value, color = accession_id)) +
+      geom_line(aes(group = Kmer), color = "grey", linetype = "dashed") +
+      geom_point(shape = 16, size = 2) +
+      geom_text(aes(label = paste0(Kmer, "\n", mean_count)), 
+                vjust = -0.5, size = 2, show.legend = FALSE) +
+      labs(title = paste0("Results for k = ", k),
+           x = "count per virus / sd segm virus",
+           y = "log10(frequency virus) - log10(frequency mos)") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(hjust = 1)) +
+      expand_limits(x = max(table$x_value, na.rm = TRUE) * 1.05, 
+                    y = max(table$y_value, na.rm = TRUE) * 1.1)
+    print(plot)
+    
+############
+    for (k_mer in k_mers[nchar(k_mers) == k]){ 
+      result <- plot_data[[k_mer]]$result
+      G_positions <- plot_data[[k_mer]]$kmer_positions
+      
+      plot <- ggplot(G_positions, aes(x = Position, y = Genome)) + 
+        geom_point(size = 1, shape = 16, color = "blue") +
+        labs(title = paste("K-mer Presence: ", k_mer),  
+             subtitle = paste("Experiment: ", result$experiment_name),
+             x = "Genomic Position",  
+             y = "Genome") +  
+        theme_minimal() +  
+        theme(axis.text.x = element_text(angle = 45, hjust = 1),  
+              legend.position = "none") +  
+        coord_cartesian(clip = 'off')
+      
+      print(plot)
+    }
+}
+
+
+
+```
+
+
+
+
+
+
