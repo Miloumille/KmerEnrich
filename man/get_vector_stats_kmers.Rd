@@ -7,13 +7,57 @@
 get_vector_stats_kmers(v_kmers_stats, vector_genome_path)
 }
 \arguments{
-\item{v_kmers_stats}{Dataframe containing the kmers that need to be searched for. The dataframe must contain a column "Kmer" with the kmers that need to be searched for.}
+\item{v_kmers_stats}{A `data.frame` (or `tibble`) containing k-mer statistics,
+which will be enriched by this function. It MUST include a column named
+`Kmer` (type `character`) with the k-mers to be analyzed. Additionally,
+it MUST contain `mean_freq_virus`, `mean_count`, and
+`max_max_log10_segm_size` columns (type `numeric`), which are used
+to calculate the `Enrichment_score` and `Distribution_score`.}
 
-\item{vector_genome_path}{path to the folder containing the fastq files or to the fastq file for the mosquito RNA sequences. Can be a folder or a fastq file. (files must be in .fastq format). The fastq files must end with _1.fastq and _2.fastq in order to be accessed properly. The input path on the contrary must be the part just before the _1.fastq or _2.fastq.}
+\item{vector_genome_path}{A `character` vector where each element is the
+BASE PATH (filename without `_1.fastq` or `_2.fastq` suffix) for
+a pair of paired-end FASTQ files. For example, if your files are
+`sampleA_1.fastq` and `sampleA_2.fastq`, the corresponding element in
+this vector should be `'path/to/sampleA'`. The function expects both
+`_1.fastq` and `_2.fastq` files to exist for each base path. These files
+contain the RNA sequences (e.g., mosquito RNA sequences).}
 }
 \value{
-The function will complete the "v_kmers_stats" Dataframe by adding for each kmer the frequence at which it appears in the fastq files as well as the amount of time they appeared.
+A `data.frame` (or `tibble`) that builds upon the input `v_kmers_stats`.
+  It includes the following new columns for each k-mer and each input FASTQ file pair:
+  \itemize{
+    \item `kmer_count`: The total number of times the k-mer appeared across
+      both `_1.fastq` and `_2.fastq` reads for a given sample.
+    \item `freq_vector`: The frequency of the k-mer (k-mer count divided
+      by total sequence length) in the FASTQ files for a given sample.
+    \item `accession_id`: The base name of the FASTQ file pair (e.g., 'sampleA'
+      from 'path/to/sampleA').
+    \item `Enrichment_score`: Calculated as `mean_freq_virus / freq_vector`.
+    \item `Distribution_score`: Calculated as `mean_count / max_max_log10_segm_size`.
+  }
 }
 \description{
-The get_vector_stats_kmers function generates a list of all kmers that have been found in common in all sequences of all fasta files between position 0 and x.
+Calculates the count and frequency of specified k-mers within
+  RNA-seq data from paired-end FASTQ files, enriching a provided k-mer
+  statistics dataframe.
+
+  Documentation has been partially AI generated
+}
+\details{
+This function processes paired-end FASTQ files, expecting them to be named
+with `_1.fastq` and `_2.fastq` suffixes (e.g., `sample_A_1.fastq`,
+`sample_A_2.fastq`). The `vector_genome_path` parameter should provide
+the base path *without* these suffixes.
+
+For each k-mer in `v_kmers_stats$Kmer` and each pair of FASTQ files,
+the function concatenates all reads from both files and calculates the
+k-mer's total count and its frequency (count / total sequence length).
+
+The `Enrichment_score` and `Distribution_score` are calculated using
+pre-existing columns from the input `v_kmers_stats` dataframe:
+`mean_freq_virus`, `mean_count`, and `max_max_log10_segm_size`.
+Ensure these columns are present and contain relevant data from
+your viral genome analysis.
+
+This function relies on `ShortRead::readFastq` and `stringr::str_count`.
 }

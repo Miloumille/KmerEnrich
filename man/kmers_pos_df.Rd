@@ -2,18 +2,74 @@
 % Please edit documentation in R/kmers_pos_df.R
 \name{kmers_pos_df}
 \alias{kmers_pos_df}
-\title{Generate a dataframe of position of all kmers, distance between kmers for the fasta file(s)}
+\title{Generate a dataframe of k-mer positions and segment sizes
+#'}
 \usage{
 kmers_pos_df(virus_genome_path, kmers_list)
 }
 \arguments{
-\item{virus_genome_path}{The input is a string that can be either a path to a fasta file or a path to a folder containing fasta files.}
+\item{virus_genome_path}{A `character` string specifying the path to either:
+\itemize{
+  \item A single `.fasta` file. In this case, the `Type` column in the
+    output will be extracted from the base name of the file
+    (e.g., `'virusA'` from `'path/to/virusA.fasta'`).
+  \item A folder containing one or more `.fasta` files. If a folder is
+    provided, the function will process all `.fasta` files within it
+    (including subdirectories due to `recursive = TRUE`). The `Type` column
+    for each sequence will be derived from the name of the immediate parent
+    directory of the FASTA file.
+}}
 
-\item{kmers_list}{The input is a list of strings containing the kmers to search for.}
+\item{kmers_list}{A `character` vector containing the k-mer sequences to
+search for within the genomes.}
 }
 \value{
-This function will return a dataframe containing the position of every kmer on every sequence of every fasta file with specific characteristics as the sequence name, the position of the kmer, the type of the virus (subtype), the segment size (distance between previous kmer and actual kmer) and the log10 value of the segment size.
+A `data.frame` (or `tibble`) with one row per k-mer occurrence and
+  per sequence boundary marker. It includes the following columns:
+  \itemize{
+    \item `SequenceName` (`character`): The name of the sequence from the FASTA file.
+    \item `Kmer` (`character`): The k-mer sequence found.
+    \item `Position` (`numeric`): The 1-based starting position of the k-mer in the
+      sequence. For the 'segment to sequence end' marker, this is the
+      `sequence_length`.
+    \item `Type` (`character`): The virus subtype, extracted as described
+      in `virus_genome_path`.
+    \item `segm_size` (`numeric`): The size of the segment. This is calculated
+      as `Position - dplyr::lag(Position)`. For the very first k-mer of a
+      sequence (or the initial segment from position 0), this value will be `NA`.
+    \item `log10_segm_size` (`numeric`): The base-10 logarithm of (`segm_size` + 1).
+      This value will be `NA` where `segm_size` is `NA`.
+  }
 }
 \description{
-The kmers_pos_df function is used to generate a dataframe containing the position of every kmer on every sequence of every fasta file. It also contains the size of the segments betweem 2 kmers or between the first nucleotide and the first kmer or the last kmer and the last nucleotide.
+Generates a data frame detailing the absolute positions of
+  specified k-mers within each sequence of input FASTA file(s). It also
+  calculates the size of segments between consecutive k-mers, as well as the
+  initial segment from the sequence start to the first k-mer and the final
+  segment from the last k-mer to the sequence end.
+
+  Documentation has been partially AI generated
+}
+\details{
+For each sequence and each k-mer in `kmers_list`, the function identifies
+all occurrences.
+
+To facilitate segment size calculation, the function adds an artificial
+'final position entry' for each k-mer equal to the `sequence_length`.
+This allows calculation of the segment from the last observed k-mer to
+the end of the sequence.
+
+The `segm_size` column is calculated by subtracting the position of the
+previous k-mer (or sequence start) from the current k-mer's position.
+The first `segm_size` for each k-mer within each sequence will be `NA`
+because there's no preceding k-mer to calculate the distance from.
+These `NA` values typically represent the segment from the start of the
+sequence to the first observed k-mer.
+
+The `log10_segm_size` is calculated as `log10(segm_size + 1)`. The `+ 1`
+is added to handle potential `segm_size` values of 0 (though unlikely
+for k-mer distances) and to ensure valid logarithmic calculations.
+
+If `virus_genome_path` points to a folder, the function recursively searches
+for all `.fasta` files within that folder.
 }

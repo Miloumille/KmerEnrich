@@ -14,7 +14,8 @@ Imports:
     dplyr,
     magrittr,
     stringr,
-    ShortRead
+    ShortRead,
+    DT
 Suggests:
     testthat
 LazyData: true
