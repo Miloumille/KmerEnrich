@@ -212,14 +212,10 @@ We welcome contributions! If you have suggestions for improvements, bug fixes, o
 
 ---
 
-## License
-
-This project is licensed under the MIT License - see the `LICENSE` file for details.
-
----
-
 ## Contact
 
 For questions or support, please open an issue on the GitHub repository.
+Or with mail to 
+milouvancau\@gmail.com
 
 ---
