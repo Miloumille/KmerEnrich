@@ -19,31 +19,75 @@ k_mers <- names(plot_data)
 for (k in k_list){
   
   df <- results[[paste0("k_", k)]]
-  subset_df <- df %>%
+  
+  grouped_df <- df %>%
+    group_by(Kmer) %>%
+    summarise(
+      mean_count = mean(mean_count, na.rm = TRUE),
+      sd_count = mean(sd_count, na.rm = TRUE),
+      Distribution_score = mean(Distribution_score, na.rm = TRUE),
+      Enrichment_score = mean(Enrichment_score, na.rm = TRUE)
+    ) %>%
+    ungroup()
+  
+  subset_df <- grouped_df %>%
     select(Kmer, mean_count, sd_count, Distribution_score, Enrichment_score) %>%
-    arrange(desc(Enrichment_score)) %>%
+    arrange(desc(Distribution_score)) %>%
     slice_head(n = 5)
   print(knitr::kable(subset_df, format = "simple"))
 
 
 ############
 
-    table <- results[[paste0("k_", k)]] #%>% filter(mean_count > mean(mean_count, na.rm = TRUE))
-    
-    # Create plot
-    plot <- ggplot(table, aes(x = Distribution_score, y = Enrichment_score, color = accession_id)) +
-      geom_line(aes(group = Kmer), color = "grey", linetype = "dashed") +
-      geom_point(shape = 16, size = 2) +
-      geom_text(aes(label = paste0(Kmer, "\n", mean_count)), 
-                vjust = -0.5, size = 2, show.legend = FALSE) +
-      labs(title = paste0("Results for k = ", k),
-           x = "count per virus / sd segm virus",
-           y = "log10(frequency virus) - log10(frequency mos)") +
-      theme_minimal() +
-      theme(axis.text.x = element_text(hjust = 1)) +
-      expand_limits(x = max(table$Distribution_score, na.rm = TRUE) * 1.05, 
-                    y = max(table$Enrichment_score, na.rm = TRUE) * 1.1)
-    print(plot)
+  table <- results[[paste0("k_", k)]] #%>% filter(mean_count > mean(mean_count, na.rm = TRUE))
+
+  # Create plot
+  kmer_mean_scores <- table %>%
+    group_by(Kmer) %>%
+    summarise(mean_enrichment = mean(Distribution_score, na.rm = TRUE)) %>%
+    arrange(desc(mean_enrichment))
+  
+  top_kmer_list <- head(kmer_mean_scores$Kmer, 10)
+
+  
+  table_top_5_percent <- table %>%
+    filter(Kmer %in% top_kmer_list) %>%
+    arrange(desc(Enrichment_score))
+  
+  # Create a summarized data frame for geom_text labels
+  # We'll take the mean Distribution_score and Enrichment_score for each Kmer to position the text
+  label_data <- table_top_5_percent %>%
+    group_by(Kmer, mean_count) %>%
+    summarise(
+      Distribution_score = mean(Distribution_score, na.rm = TRUE),
+      Enrichment_score = mean(Enrichment_score, na.rm = TRUE)
+    ) %>%
+    ungroup()
+  
+  
+  plot <- ggplot(table_top_5_percent, aes(x = Distribution_score, y = Enrichment_score, color = accession_id)) +
+    geom_line(aes(group = Kmer), color = "grey", linetype = "dashed") +
+    geom_point(shape = 16, size = 3) +
+    geom_text(data = label_data, # Use the new summarized data for labels
+              aes(label = paste0(Kmer, "\n", mean_count)),
+              vjust = -0.5, size = 4, show.legend = FALSE,
+              color = "black") + # Set a distinct color for text for better visibility if needed
+    labs(title = paste0("Best 10 results for k = ", k),
+         x = "count per virus / sd segm virus * sd kmer count virus",
+         y = "frequency virus / frequency mos") +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(hjust = 1, size = 14),
+      axis.text.y = element_text(size = 14),
+      axis.title.x = element_text(size = 16),
+      axis.title.y = element_text(size = 16),
+      legend.text = element_text(size = 12),
+      legend.title = element_text(size = 14),
+      plot.title = element_text(size = 18, face = "bold")
+    ) +
+    expand_limits(x = max(table$Distribution_score, na.rm = TRUE) * 1.05,
+                  y = max(table$Enrichment_score, na.rm = TRUE) * 1.05)
+  print(plot)
     
 ############
     for (k_mer in k_mers[nchar(k_mers) == k]){ 
