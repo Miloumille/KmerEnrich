@@ -24,4 +24,4 @@ See `vignettes/getting-started.Rmd` and the example scripts in `scripts/`.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+GPL-3. See [LICENSE](LICENSE).
