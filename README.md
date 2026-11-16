@@ -43,7 +43,7 @@ install.packages("rmarkdown")  # For report generation
 install.packages("knitr")      # For tables in report
 
 # Install KmerEnrich from GitHub
-devtools::install_github("your-github-username/KmerEnrich") # Replace "your-github-username" with your actual GitHub username or organization
+devtools::install_github("Miloumille/KmerEnrich@v0.1.0")
 ```
 
 ---
@@ -219,3 +219,17 @@ Or with mail to
 milouvancau\@gmail.com
 
 ---
+
+---
+
+## Citation
+
+If you use `KmerEnrich`, please cite the tagged release:
+
+> Van Cauwenberghe, E. *KmerEnrich: K-mer Enrichment Analysis of Viral Genomes Against a Vector Background* (version 0.1.0). GitHub, https://github.com/Miloumille/KmerEnrich/releases/tag/v0.1.0
+
+The analysis code of v0.1.0 is identical to commit `c2c849b` (July 2025); the release only adds package metadata, the licence file and citation information.
+
+## License
+
+GPL-3. See [LICENSE](LICENSE).

@@ -1,10 +1,16 @@
 Package: KmerEnrich
-Title: None yet
+Title: K-mer Enrichment Analysis of Viral Genomes Against a Vector Background
 Version: 0.1.0
-Description: None Yet.
-Author: Van Cauwenberghe Emile
-Maintainer: <milouvancau@gmail.com>
+Description: Identifies k-mers that are conserved across viral genomes and
+    over-represented relative to a vector (e.g. mosquito) background estimated
+    from paired-end RNA-seq reads. Maps k-mer positions along viral sequences,
+    computes per-k-mer frequency, spacing, enrichment and distribution scores,
+    and summarises the results in an HTML report with CSV exports.
+Author: Emile Van Cauwenberghe [aut, cre]
+Maintainer: Emile Van Cauwenberghe <milouvancau@gmail.com>
 License: GPL-3
+URL: https://github.com/Miloumille/KmerEnrich
+BugReports: https://github.com/Miloumille/KmerEnrich/issues
 RoxygenNote: 7.3.2
 Encoding: UTF-8
 Depends: R (>= 4.0.0)
@@ -12,7 +18,10 @@ Imports:
     Biostrings,
     data.table,
     dplyr,
+    ggplot2,
+    knitr,
     magrittr,
+    rmarkdown,
     stringr,
     ShortRead,
     DT

@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "KmerEnrich: K-mer Enrichment Analysis of Viral Genomes Against a Vector Background"
+type: software
+authors:
+  - family-names: "Van Cauwenberghe"
+    given-names: "Emile"
+version: "0.1.0"
+date-released: "2026-11-16"
+license: GPL-3.0-only
+repository-code: "https://github.com/Miloumille/KmerEnrich"
+url: "https://github.com/Miloumille/KmerEnrich/releases/tag/v0.1.0"
