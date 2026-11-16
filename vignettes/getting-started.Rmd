@@ -1,0 +1,239 @@
+---
+title: "KMerEnrich v2.0 — Guide d'utilisation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{KMerEnrich v2.0 — Guide d'utilisation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+set.seed(42)
+```
+
+KMerEnrich conçoit des **primers semi-spécifiques SMART-9N** qui enrichissent l'ARN
+viral face à un fond hôte/vecteur, pour le séquençage de virus à faible charge
+(surveillance d'arbovirus sur moustiques). Il part de génomes viraux de référence
+et de données RNA-seq de fond, et produit un **pool de primers classé**, prêt à
+commander.
+
+> La fonction tout-en-un `KmerEnrichReport()` (qui enchaînera ces étapes et
+> produira un rapport HTML) arrive ensuite. En attendant, on appelle les briques
+> directement — ce qui est aussi la façon de scripter finement.
+
+```{r libs, message = FALSE}
+library(KMerEnrich)
+library(Biostrings)
+```
+
+# 1. Organiser les données d'entrée
+
+Deux dossiers, une règle simple : **un sous-dossier = une entité**.
+
+```
+mon_projet/
+├── virus/
+│   └── dengue2/          <- une cible virale (le nom devient le nom de la cible)
+│       ├── strain1.fasta     souche 1
+│       ├── strain2.fasta     souche 2
+│       └── strain3.fasta     souche 3
+└── background/
+    └── aedes/            <- une source de fond
+        └── run_1.fastq       (FASTQ, .gz accepté ; FASTA toléré)
+```
+
+Pour cette démo, on fabrique un jeu synthétique : 3 souches partageant quatre
+motifs conservés. Deux d'entre eux (`GCAAGTTCA` / `GCAGGTTCA`) ne diffèrent que
+d'une base et partagent la même ancre 3′ — ils seront fusionnés en **un seul primer
+dégénéré** qui se fixe aux deux loci. Le reste est aléatoire (fond + flancs
+propres à chaque souche).
+
+```{r make-data}
+root <- tempfile(); dir.create(root)
+vdir <- file.path(root, "virus", "dengue2"); dir.create(vdir, recursive = TRUE)
+bdir <- file.path(root, "background", "aedes"); dir.create(bdir, recursive = TRUE)
+
+a1 <- "GCAAGTTCA"; a2 <- "GCAGGTTCA"; b <- "CATGCACTG"; d <- "TGGACAAGC"
+rand_seq <- function(n) paste(sample(c("A", "C", "G", "T"), n, TRUE), collapse = "")
+
+for (i in 1:3) {
+  writeLines(c(paste0(">strain", i),
+               paste0(rand_seq(200), a1, rand_seq(300), a2, rand_seq(300), b,
+                      rand_seq(300), d, rand_seq(200))),
+             file.path(vdir, paste0("s", i, ".fasta")))
+}
+reads <- vapply(1:400, function(i) rand_seq(80), character(1))
+writeLines(unlist(Map(function(id, s) c(paste0("@", id), s, "+", strrep("I", nchar(s))),
+                      paste0("r", seq_along(reads)), reads)),
+           file.path(bdir, "run_1.fastq"))
+```
+
+Plusieurs souches d'un même virus → plusieurs `.fasta` dans le même sous-dossier.
+Plusieurs virus → plusieurs sous-dossiers sous `virus/` (mode panel, section 8).
+
+# 2. Charger les cibles
+
+```{r load-targets}
+targets <- load_targets(file.path(root, "virus"))
+names(targets)
+length(targets$dengue2)
+```
+
+# 3. Ajuster le modèle de fond (Markov ordre 1)
+
+On ne compte **jamais** les 9-mers dans le fond (ce serait très lent). On ajuste un
+modèle de Markov d'ordre 1 en **une passe** ; la fréquence attendue de n'importe
+quel primer en découle analytiquement.
+
+```{r model}
+background <- load_background(file.path(root, "background"))
+model <- markov_background(unlist(background, use.names = FALSE))
+round(model$pi, 3)   # composition du fond
+```
+
+Pour un gros fond (3–4 Go), utilise plutôt le fit en streaming (mémoire
+constante), identique au bit près :
+
+```{r model-stream, eval = FALSE}
+fq <- list.files(file.path(root, "background"), "\\.fastq(\\.gz)?$",
+                 recursive = TRUE, full.names = TRUE)
+model <- markov_background_files(fq)
+```
+
+**Pas de fond sous la main ?** `default_background()` fournit un null statistique
+sans données : chaque base à sa fréquence moyenne (25 % par défaut, ou une
+composition A/C/G/T que tu passes), indépendamment de ses voisines. Il se branche
+partout où un modèle ajusté est attendu.
+
+```{r model-default, eval = FALSE}
+model <- default_background()                              # uniforme 25 %
+model <- default_background(c(A = .3, C = .2, G = .2, T = .3))  # composition connue
+```
+
+# 4. Générer les primers candidats
+
+```{r candidates}
+kmers   <- enumerate_conserved_kmers(targets$dengue2, k = 9)      # conservés sur toutes les souches
+primers <- collapse_to_iupac(kmers, max_degenerate = 1L, anchor = 2L)  # fusion dégénérée IUPAC
+primers
+```
+
+`collapse_to_iupac` fusionne les k-mers qui ne diffèrent que sur quelques positions
+en un seul primer à codes IUPAC (`R = A/G`, `Y = C/T`…), en **gardant les 2 bases
+3′ fixes** et en n'autorisant la dégénérescence qu'au milieu. Ici `GCAAGTTCA` et
+`GCAGGTTCA` deviennent `GCARGTTCA` — **un primer qui couvre les deux loci** (la
+couverture génomique vient donc à la fois du nombre de primers et de la
+dégénérescence de chacun).
+
+# 5. Scorer l'enrichissement
+
+```{r enrich}
+scored <- score_enrichment(primers, targets$dengue2, model)
+scored[, c("pattern", "enrichment")]
+```
+
+`enrichment` = **fold ×N** : le primer amorce N fois plus souvent sur le virus que
+ce que la composition du fond prédit. Ici les motifs sont quasi absents du fond
+aléatoire → fold très élevé. Sur du vrai fond moustique, attends-toi à des valeurs
+plus modestes (de quelques × à quelques dizaines ×).
+
+# 6. Filtrer (seuil d'admission)
+
+```{r filter}
+admit <- filter_candidates(scored, min_enrichment = 2,
+                           tm_min = 0, tm_max = 60, gc_min = 0.2, gc_max = 0.8)
+admit$pattern
+```
+
+Un candidat est admis s'il est **assez enrichi** ET passe le **filtre thermo**
+(Tm, GC, clamp G/C en 3′). Un k-mer qui commence par `AT` (pas de G/C au clamp 3′)
+est rejeté ici — amorçage 3′ instable —, ce qui est le comportement voulu.
+
+# 7. Couverture, saturation & pool recommandé
+
+Pour chaque taille de pool K, l'ILP choisit le **meilleur** ensemble de K primers
+(re-optimisé à chaque K). `n_star` est le point de **plateau** : au-delà, ajouter
+un primer n'améliore quasi plus la couverture.
+
+```{r optimize}
+cov <- coverage_matrix(admit$pattern, targets, read_len = 120, bin_size = 50L)
+sat <- saturation_curve(cov, k_max = nrow(admit), floor = 0, plateau = 0.05)  # floor = 0 : 1 virus ici
+sat$curve[, c("k", "coverage", "marginal_gain")]
+sat$n_star
+```
+
+`plot_saturation()` lit ça d'un coup d'œil : la couverture par taille de pool, plateau `N*` marqué.
+
+```{r plot-saturation, fig.width = 6, fig.height = 3.4, fig.alt = "Courbe de saturation"}
+plot_saturation(sat)
+```
+
+```{r pool}
+best  <- optimize_pool(cov, sat$n_star, floor = 0)
+enr   <- mean(admit$enrichment[admit$pattern %in% best$patterns])
+score <- desirability(enr, best$coverage, best$regularity)
+
+data.frame(
+  metrique = c("primers", "couverture", "regularite", "enrichissement", "score /100"),
+  valeur   = c(paste(best$patterns, collapse = ", "),
+               paste0(round(best$coverage * 100), " %"),
+               round(best$regularity, 2),
+               paste0(round(enr, 1), "x"),
+               round(score, 1))
+)
+```
+
+# 8. Séquences à commander
+
+Le primer s'hybride sur le brin **matrice** ; la séquence à **synthétiser** est le
+complément inverse du k-mer.
+
+```{r order}
+as.character(reverseComplement(DNAStringSet(best$patterns)))
+```
+
+# 9. Visualiser les primers sur le génome
+
+`plot_primer_map()` montre où chaque primer du pool se fixe le long du génome —
+une couleur par primer (segment = région couverte, point = site de fixation).
+
+```{r plot-map, fig.width = 9, fig.height = 3.2, fig.alt = "Carte des primers sur le génome"}
+plot_primer_map(best$patterns, targets, read_len = 120, target = "dengue2")
+```
+
+# Comment lire les résultats
+
+| Métrique | Sens | Bon signe |
+|---|---|---|
+| **Enrichissement (×N)** | Amorce N fois plus sur le virus que sur le fond. | Élevé = spécifique |
+| **Couverture (%)** | Part du génome viral atteinte par le pool. | Proche de 100 % |
+| **Régularité (0–1)** | Couverture homogène (1) vs en pics (0). | Proche de 1 |
+| **Score (/100)** | Moyenne géométrique des trois. Si l'une est mauvaise, le score s'effondre. | Trie tes options |
+
+La **courbe de saturation** répond à « combien de primers commander ? » : on lit le
+plateau `n_star`, le point où la couverture cesse d'augmenter significativement.
+Commander plus que `n_star` coûte sans gain.
+
+# Paramètres
+
+| Paramètre | Fonction | Rôle | Défaut |
+|---|---|---|---|
+| `k` | `enumerate_conserved_kmers` | Longueur du primer (SMART-9N → 9). | 9 |
+| `max_degenerate` | `collapse_to_iupac` | Positions dégénérées max. | 3 |
+| `anchor` | `collapse_to_iupac` | Bases 3′ toujours fixes. | 2 |
+| `min_enrichment` | `filter_candidates` | Enrichissement minimal admis. | 2 |
+| `tm_*`, `gc_*` | `filter_candidates` | Fenêtres thermo (à calibrer). | 15–45 °C, 0.2–0.8 |
+| `read_len` | `coverage_matrix` | Longueur de read effective. | — |
+| `bin_size` | `coverage_matrix` | Finesse de la couverture. | 100 |
+| `floor` | `optimize_pool` / `saturation_curve` | Couverture minimale **par virus**. | 0.5 |
+| `plateau` | `saturation_curve` | Seuil de gain marquant le plateau. | 0.05 |
+| `w_enrich` | `desirability` | Priorité enrichissement vs couverture. | 0.4 |
+
+# Plusieurs virus (mode panel)
+
+Un sous-dossier par virus sous `virus/`. `load_targets()` renvoie une cible par
+sous-dossier, et l'optimisation impose un **plancher de couverture par virus**
+(`floor`) : chaque virus atteint son minimum **avant** que le reste soit maximisé —
+aucun virus n'est laissé de côté. `optimize_pool(...)$per_target` donne la
+couverture atteinte par virus.

@@ -1,0 +1,28 @@
+Package: KMerEnrich
+Title: Semi-Targeted SMART-9N Primer Design for Viral Enrichment
+Version: 2.0.0
+Authors@R:
+    person("Emile", "Van Cauwenberghe", email = "milouvancau@gmail.com",
+           role = c("aut", "cre"))
+Description: Designs semi-specific SMART-9N primers that enrich viral RNA over a
+    host/vector background using k-mer statistics, RNA accessibility, thermodynamic
+    filtering, and integer-linear-programming coverage optimisation.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+    Biostrings,
+    ggplot2,
+    jsonlite,
+    lpSolve,
+    ShortRead,
+    stats
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    withr
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+biocViews:
